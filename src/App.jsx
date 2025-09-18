@@ -1,36 +1,37 @@
 // src/App.jsx
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
-import app from "./firebase/config.js";
-import LoginPage from "./pages/LoginPage.jsx";
-import DashboardPage from "./pages/DashboardPage.jsx"; // <-- Import the new component
+import LoginPage from "./pages/LoginPage";
+import DashboardPage from "./pages/DashboardPage";
+import { GameProvider } from "./GameContext.jsx"; // Import the provider
 
 function App() {
   const [user, setUser] = useState(null);
-  const auth = getAuth(app);
+  const auth = getAuth();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
     });
     return () => unsubscribe();
   }, [auth]);
 
   const handleLogout = () => {
-    signOut(auth);
+    signOut(auth).catch((error) => console.error("Logout Error:", error));
   };
 
   return (
-    <div>
-      {/* Now we just pass the user and logout function down to the 
-        DashboardPage component as 'props'.
-      */}
-      {user ? (
-        <DashboardPage user={user} handleLogout={handleLogout} />
-      ) : (
-        <LoginPage />
-      )}
-    </div>
+    <GameProvider>
+      {" "}
+      {/* Wrap the app */}
+      <div className="App">
+        {user ? (
+          <DashboardPage user={user} handleLogout={handleLogout} />
+        ) : (
+          <LoginPage />
+        )}
+      </div>
+    </GameProvider>
   );
 }
 
